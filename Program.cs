@@ -14,7 +14,11 @@ List<GameDTO> gameDTOs = [
 app.MapGet("/", () => "Hello World!");
 app.MapGet("/cos4h", () => "Hi, I amd cos4h");
 app.MapGet("/api/games", () => gameDTOs);
-app.MapGet("/api/games/{id}", (int id) => gameDTOs.Find(game => game.Id == id))
+app.MapGet("/api/games/{id}", (int id) =>
+{
+    GameDTO? gameDB = gameDTOs.Find(game => game.Id == id);
+    return gameDB is null ? Results.NotFound() : Results.Ok(gameDB);
+})
    .WithName("GetGame");
 app.MapPost("/api/game", (CreateGameDTO newGame) =>
 {
