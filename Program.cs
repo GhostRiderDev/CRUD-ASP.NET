@@ -10,6 +10,6 @@ builder.Services.AddSqlServer<GameStoreContext>(connString);
 var app = builder.Build();
 
 app.MapGameRouter();
-app.MigrateDb();
+await app.MigrateDbAsync();
 
 app.Run();

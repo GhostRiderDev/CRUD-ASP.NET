@@ -1,6 +1,8 @@
 using GameStore.API.Data;
 using GameStore.API.DTO;
 using GameStore.API.Entities;
+using GameStore.API.Mapping;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.API.Router;
 
@@ -17,27 +19,25 @@ public static class GameRouter
     {
         var group = app.MapGroup("/api/games").WithParameterValidation();
 
-        group.MapGet("", () => gameDTOs);
-        group.MapGet("/{id}", (int id) =>
+        group.MapGet("", async (GameStoreContext dbConteext) =>
+           await dbConteext.Games.Include(game => game.Genre)
+                            .Select(game => game.ToDTO())
+                            .AsNoTracking()
+                            .ToListAsync()
+        );
+        group.MapGet("/{id}", async (int id, GameStoreContext dbContext) =>
         {
-            GameDTO? gameDB = gameDTOs.Find(game => game.Id == id);
+            Game? gameDB = await dbContext.Games.FindAsync(id);
             return gameDB is null ? Results.NotFound() : Results.Ok(gameDB);
         })
            .WithName("GetGame");
-        group.MapPost("", (CreateGameDTO newGame, GameStoreContext dbContext) =>
+        group.MapPost("", async (CreateGameDTO newGame, GameStoreContext dbContext) =>
         {
-            var (Name, Genre, Price, ReleaseDate) = newGame;
-            Game game = new()
-            {
-                Name = Name,
-                Genre = dbContext.Genres.Find(newGame.IdGenre),
-                IdGenre = newGame.IdGenre,
-                Price = Price,
-                ReleaseDate = ReleaseDate
-            };
+            Game game = newGame.ToEntity();
             dbContext.Games.Add(game);
-            dbContext.SaveChanges();
-            return Results.CreatedAtRoute("GetGame", new { id = game.Id }, game);
+            await dbContext.SaveChangesAsync();
+
+            return Results.CreatedAtRoute("GetGame", new { id = game.Id }, game.ToDTO());
         }).WithParameterValidation();
 
         group.MapPut("/{id}", (int id, UpdateGameDTO updateGameDTO) =>
@@ -60,9 +60,12 @@ public static class GameRouter
             return Results.NoContent();
         });
 
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", async (int id, GameStoreContext dbContext) =>
         {
-            gameDTOs.RemoveAll(game => game.Id == id);
+            await dbContext.Games
+            .Where(game => game.Id == id)
+            .ExecuteDeleteAsync();
+
             return Results.NoContent();
         });
 
