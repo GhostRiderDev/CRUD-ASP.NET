@@ -28,4 +28,24 @@ app.MapPost("/api/game", (CreateGameDTO newGame) =>
     return Results.CreatedAtRoute("GetGame", new { id = gameDTO.Id, gameDTO });
 });
 
+app.MapPut("/api/game/{id}", (int id, UpdateGameDTO updateGameDTO) =>
+{
+    var index = gameDTOs.FindIndex(game => game.Id == id);
+    var (Name, Genre, Price, ReleaseDate) = updateGameDTO;
+    gameDTOs[index] = new GameDTO(
+        id,
+        Name,
+        Genre,
+        Price,
+        ReleaseDate
+    );
+    return Results.NoContent();
+});
+
+app.MapDelete("/api/games/{id}", (int id) =>
+{
+    gameDTOs.RemoveAll(game => game.Id == id);
+    return Results.NoContent();
+});
+
 app.Run();
