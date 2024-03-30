@@ -1,4 +1,6 @@
+using GameStore.API.Data;
 using GameStore.API.DTO;
+using GameStore.API.Entities;
 
 namespace GameStore.API.Router;
 
@@ -22,16 +24,20 @@ public static class GameRouter
             return gameDB is null ? Results.NotFound() : Results.Ok(gameDB);
         })
            .WithName("GetGame");
-        group.MapPost("", (CreateGameDTO newGame) =>
+        group.MapPost("", (CreateGameDTO newGame, GameStoreContext dbContext) =>
         {
-            GameDTO gameDTO = new(
-                gameDTOs.Count + 1,
-                newGame.Name,
-                newGame.Genre,
-                newGame.Price,
-                newGame.ReleaseDate);
-            gameDTOs.Add(gameDTO);
-            return Results.CreatedAtRoute("GetGame", new { id = gameDTO.Id, gameDTO });
+            var (Name, Genre, Price, ReleaseDate) = newGame;
+            Game game = new()
+            {
+                Name = Name,
+                Genre = dbContext.Genres.Find(newGame.IdGenre),
+                IdGenre = newGame.IdGenre,
+                Price = Price,
+                ReleaseDate = ReleaseDate
+            };
+            dbContext.Games.Add(game);
+            dbContext.SaveChanges();
+            return Results.CreatedAtRoute("GetGame", new { id = game.Id }, game);
         }).WithParameterValidation();
 
         group.MapPut("/{id}", (int id, UpdateGameDTO updateGameDTO) =>
