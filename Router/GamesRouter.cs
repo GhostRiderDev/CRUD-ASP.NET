@@ -6,9 +6,9 @@ public static class GameRouter
 {
     private static readonly List<GameDTO> gameDTOs = [
         new GameDTO(1, "The red night red", "Action", 9.99M, new DateOnly(2004, 4, 5)),
-        new GameDTO(2, "The blue night blue", "Adventure", 19.99M, new DateOnly(2005, 5, 6)),
+        new GameDTO(2, "The gray night blue", "Adventure", 19.99M, new DateOnly(2005, 5, 6)),
         new GameDTO(3, "The green night green", "RPG", 29.99M, new DateOnly(2006, 6, 7)),
-        new GameDTO(4, "The yellow night yellow", "Strategy", 39.99M, new DateOnly(2007, 7, 8))
+        new GameDTO(4, "The blue night yellow", "Strategy", 39.99M, new DateOnly(2007, 7, 8))
     ];
 
     public static RouteGroupBuilder MapGameRouter(this WebApplication app)
